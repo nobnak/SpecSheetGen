@@ -1,3 +1,4 @@
+using nobnak.Gist.Extensions.ProjectExt;
 using SpecSheetSys;
 using SpecSheetSys.Examples;
 using System.Collections.Generic;
@@ -24,8 +25,10 @@ namespace SpecSheetGenSys.Editor {
 			//	System.Reflection.Assembly.Load(AssemblyString),
 			//	GetType().Assembly
 			//};
-			var assemblies = GetType().Assembly.GetReferencedAssemblies()
-				.Select(a => System.Reflection.Assembly.Load(a.Name));
+			var assemblies = new []{ "Assembly-CSharp", "SpecSheetGen" }
+				.Select(a => System.Reflection.Assembly.Load(a));
+			foreach (var a in assemblies)
+				Debug.Log($"Assembly : {a.GetName()}");
 
 			var iter = assemblies
 				.SelectMany(a => a.GetTypes())
@@ -35,11 +38,10 @@ namespace SpecSheetGenSys.Editor {
 				.Where(m => m.GetParameters().Length == 0)
 				;
 
-			var folder = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "/Docs/");
+			var folder = "/Docs/".PathFromProjectFolder();
 			foreach (var m in iter) {
 				var attr = m.GetCustomAttribute<SpecSheetAttribute>();
-				var path = Path.Combine(folder, attr.FileName);
-				Debug.Log($"path:{path}");
+				var path = $"{folder}/{attr.FileName}";
 				Directory.GetParent(path).Create();
 
 				using (var w = File.CreateText(path)) {
